@@ -1,5 +1,5 @@
 {
-  "name": "314-eth-bsc-bridge",
+  "name": "eth-bsc-centralized-bridge",
   "version": "1.0.0",
   "description": "",
   "main": "truffle-config.js",
