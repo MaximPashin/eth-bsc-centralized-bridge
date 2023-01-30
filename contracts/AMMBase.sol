@@ -5,7 +5,6 @@ import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 contract AMMBase {
   address public admin;
   IERC20 public token;
-  bool public deploy_stage = true;
   uint public k;
   uint public amount_coins;
   uint public amount_tokens;
@@ -17,18 +16,7 @@ contract AMMBase {
     token = IERC20(_token);
   }
 
-  function deployAMM() external payable {
-    require(msg.sender == admin && deploy_stage);
-    amount_coins = msg.value;
-    amount_tokens = token.allowance(msg.sender, address(this));
-    k = amount_coins * amount_tokens;
-    rate = amount_tokens*(10**rate_decimals)/amount_coins;
-    token.transferFrom(msg.sender, address(this), amount_tokens);
-    deploy_stage = false;
-  }
-
   function addLiquidity() external payable {
-    require(!deploy_stage);
     uint coins = msg.value;
     uint tokens = token.allowance(msg.sender, address(this));
     token.transferFrom(msg.sender, address(this), tokens);
@@ -50,9 +38,8 @@ contract AMMBase {
     k = amount_coins * amount_tokens;
   }
 
-  function tokens_to_coins(address to) external {
-    require(!deploy_stage);
-    uint amount = token.allowance(msg.sender, address(this));
+  function tokens_to_coins(address to, uint amount) external {
+    require(amount <= token.allowance(msg.sender, address(this)));
     require(amount != 0);
     uint buyed_coins = amount_coins - k/(amount_tokens + amount);
     amount_coins -= buyed_coins;
@@ -63,7 +50,6 @@ contract AMMBase {
   }
 
   function coins_to_tokens(address to) external payable {
-    require(!deploy_stage);
     uint amount = msg.value;
     require(amount != 0);
     uint buyed_tokens = amount_tokens - k/(amount_coins + amount);
